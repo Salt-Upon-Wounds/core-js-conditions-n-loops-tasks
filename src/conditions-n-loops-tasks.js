@@ -297,8 +297,19 @@ function isContainNumber(n, digit) {
  *  [2, 3, 9, 5] => 2       => 2 + 3 === 5 then balance element is 9 and its index = 2
  *  [1, 2, 3, 4, 5] => -1   => no balance element
  */
-function getBalanceIndex(/* arr */) {
-  throw new Error('Not implemented');
+function getBalanceIndex(arr) {
+  for (let i = 1; i < arr.length - 1; i += 1) {
+    let left = 0;
+    let right = 0;
+    for (let j = 0; j < i; j += 1) {
+      left += arr[j];
+    }
+    for (let j = arr.length - 1; j > i; j -= 1) {
+      right += arr[j];
+    }
+    if (left === right) return i;
+  }
+  return -1;
 }
 
 /**
@@ -322,10 +333,29 @@ function getBalanceIndex(/* arr */) {
  *          [10, 9,  8,  7]
  *        ]
  */
-function getSpiralMatrix(/* size */) {
-  throw new Error('Not implemented');
-}
+function getSpiralMatrix(size) {
+  const res = [];
+  for (let i = 0; i < size; i += 1) {
+    res[i] = new Array(size);
+  }
+  let x = 0;
+  let y = 0;
+  let len = size - 1;
+  let start = 0;
+  for (let i = 0; i < size * size; i += 1) {
+    if (y === start && x === start + 1) {
+      start += 1;
+      len -= 1;
+    }
 
+    res[x][y] = i + 1;
+    if (x === start && y < len) y += 1;
+    else if (y === len && x < len) x += 1;
+    else if (y > start && x === len) y -= 1;
+    else x -= 1;
+  }
+  return res;
+}
 /**
  * Rotates a matrix by 90 degrees clockwise in place.
  * Take into account that the matrix size can be very large. Consider how you can optimize your solution.
@@ -341,10 +371,22 @@ function getSpiralMatrix(/* size */) {
  *    [7, 8, 9]         [9, 6, 3]
  *  ]                 ]
  */
-function rotateMatrix(/* matrix */) {
-  throw new Error('Not implemented');
+function rotateMatrix(matrix) {
+  const res = [];
+  const size = matrix.length;
+  for (let i = 0; i < size; i += 1) {
+    res[i] = new Array(size);
+  }
+  for (let i = 0; i < size; i += 1) {
+    for (let j = i; j < size - i; j += 1) {
+      res[i][j] = matrix[size - 1 - j][i];
+      res[j][i] = matrix[size - 1 - i][j];
+      res[size - 1 - i][j] = matrix[size - 1 - j][size - 1 - i];
+      res[size - 1 - j][size - 1 - i] = matrix[i][size - 1 - j];
+    }
+  }
+  Object.assign(matrix, res);
 }
-
 /**
  * Sorts an array of numbers in ascending order in place.
  * Employ any sorting algorithm of your choice.
@@ -359,8 +401,34 @@ function rotateMatrix(/* matrix */) {
  *  [2, 9, 5, 9]    => [2, 5, 9, 9]
  *  [-2, 9, 5, -3]  => [-3, -2, 5, 9]
  */
-function sortByAsc(/* arr */) {
-  throw new Error('Not implemented');
+function sortByAsc(res) {
+  function qsort(arr) {
+    if (arr.length < 2) return arr;
+    const piv = arr[0];
+    const left = [];
+    const right = [];
+    let countL = 0;
+    let countR = 0;
+    for (let i = 1; i < arr.length; i += 1) {
+      if (piv > arr[i]) {
+        left[countL] = arr[i];
+        countL += 1;
+      } else {
+        right[countR] = arr[i];
+        countR += 1;
+      }
+    }
+    const l = qsort(left);
+    const size = l.length;
+    l[size] = piv;
+    const r = qsort(right);
+    for (let i = 0; i < r.length; i += 1) {
+      l[size + 1 + i] = r[i];
+    }
+    return l;
+  }
+  const tmp = qsort(res);
+  Object.assign(res, tmp);
 }
 
 /**
@@ -380,10 +448,28 @@ function sortByAsc(/* arr */) {
  *  '012345', 3 => '024135' => '043215' => '031425'
  *  'qwerty', 3 => 'qetwry' => 'qtrewy' => 'qrwtey'
  */
-function shuffleChar(/* str, iterations */) {
-  throw new Error('Not implemented');
+function shuffleChar(str, iterations) {
+  let res = str;
+  let len = iterations;
+  for (let k = 0; k < len; k += 1) {
+    let left = '';
+    let right = '';
+    for (let j = 0; j < res.length; j += 1) {
+      if (j % 2) right += res[j];
+      else left += res[j];
+    }
+    for (let i = 0; i < right.length; i += 1) {
+      left += right[i];
+    }
+    res = left;
+    if (res === str && k !== len - 1) {
+      k += 1;
+      len -= Math.floor(len / k) * k;
+      k = -1;
+    }
+  }
+  return res;
 }
-
 /**
  * Returns the nearest largest integer consisting of the digits of the given positive integer.
  * If there is no such number, it returns the original number.
@@ -401,8 +487,36 @@ function shuffleChar(/* str, iterations */) {
  * @param {number} number The source number
  * @returns {number} The nearest larger number, or original number if none exists.
  */
-function getNearestBigger(/* number */) {
-  throw new Error('Not implemented');
+function getNearestBigger(number) {
+  const str = number.toString().split('');
+  const len = str.length;
+  let i = len - 2;
+  let j = len - 1;
+
+  function swap(ind1, ind2) {
+    const tmp = str[ind1];
+    str[ind1] = str[ind2];
+    str[ind2] = tmp;
+  }
+
+  function reverse(ind1, ind2) {
+    let start = ind1;
+    let end = ind2;
+    while (start < end) {
+      swap(start, end);
+      start += 1;
+      end -= 1;
+    }
+  }
+
+  while (i > -1 && str[i] >= str[i + 1]) i -= 1;
+  if (i > -1) {
+    while (j > i && str[j] < str[i]) j -= 1;
+    swap(i, j);
+    reverse(i + 1, len - 1);
+  }
+
+  return +str.join('');
 }
 
 module.exports = {
